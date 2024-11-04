@@ -1,0 +1,61 @@
+version: '3.9'
+
+services:
+#first we list our services and : attributes they need
+  product-service:
+    image: product-service
+    ports:
+      - "8084:8084" # external port : internal port
+    build:
+      context: ./product-service # The directory where Dockerfile resides
+      dockerfile: ./Dockerfile # specify the Dockerfile for use to build image
+    container_name: product-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      - mongodb
+    networks:
+      - spring
+#mongodb will be our second container, thats why its matching the indentatio of
+#product service
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27018:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin
+    # to make the data persist even after we shut down the container
+    # we have to make mongoDB save data to our local storage (first line under volumes)
+    volumes:
+      - ./data/mongo/products:/data/db      # this is our local (computer) storage directory : directory inside mongoDB container
+
+      - ./init/mongo/docker-entrypoint-initdb.d/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+# IN the above code snippet on line 33, We are:
+# mapping any .js file in that directory (in our computer) to : the same directory inside containerized environment : Read and execute ( our permissions)
+# We are using this line to make the application see our script that we made.
+
+    # ON linux we can have a lot of scripts that run during the bootup process
+    # those locations have to exist on an actual particular location
+    #We are gonna create a script and say: create the actual database, product-service
+    # with some users and permissions. So that way: when the actual container gets created,
+    # that script will run and create the database with required previleges.
+
+    #----------------------------------------------------------
+   # restart: unless-stopped
+    #-------------------------------------------------------------
+
+    # this makes the container keep restarting until all its dependencies are up and running
+    # it only stops when we explicitly stop it
+
+    # We will delete this restart: uunless stopped line because, it will start docker when I boot up my laptop
+    # trying to start all containers, essentially taking up resources.
+
+    command: mongod -auth
+    networks:
+      - spring
+
+
+
+
