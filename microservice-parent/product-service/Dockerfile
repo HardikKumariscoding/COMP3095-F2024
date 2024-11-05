@@ -17,7 +17,7 @@ FROM openjdk:22-jdk
 
 RUN mkdir /app
 
-COPY --from=-builder /home/gradle/src/build/libs/*.jar /app/product-service.jar
+COPY --from=builder /home/gradle/src/build/libs/*.jar /app/product-service.jar
 #                                                           |This is one of the things that
 #                                                           |we change for a different microservice
 #                                                           | EVERYTHING ELSE is REUSABLE - just change name of service
